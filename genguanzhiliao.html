@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>全景解析：风险与选择</title>
+    <style>
+        /* ================= 核心配色 ================= */
+        :root {
+            --bg-deep: #000000;
+            --bg-panel: #121212;
+            --accent-blue: #0A84FF;
+            --accent-cyan: #64D2FF;
+            --accent-red: #FF453A;
+            --accent-gold: #FFD60A;
+            --text-main: #FFFFFF;
+            --text-sub: #98989D;
+        }
+
+        body {
+            font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* 导航 */
+        .nav {
+            position: fixed; top: 0; width: 100%; height: 50px; z-index: 9999;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            backdrop-filter: blur(20px); background: rgba(0,0,0,0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-back { color: var(--accent-blue); font-weight: 700; text-decoration: none; font-size: 15px; }
+        .nav-title { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #666; text-transform: uppercase; }
+
+        /* 1. 封面 */
+        .hero {
+            height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; position: relative; overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #1a2a3a 0%, #000 100%);
+        }
+        .hero-glow {
+            position: absolute; width: 600px; height: 600px; background: var(--accent-blue);
+            filter: blur(150px); opacity: 0.2; animation: breathe 6s infinite ease-in-out;
+        }
+        @keyframes breathe { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } }
+        
+        .hero-h1 { font-size: 56px; font-weight: 900; line-height: 1; margin-bottom: 20px; z-index: 2; }
+        .hero-h1 span { -webkit-text-stroke: 1px rgba(255,255,255,0.3); color: transparent; }
+        .hero-p { font-size: 18px; color: #888; z-index: 2; max-width: 600px; padding: 0 20px; }
+        .scroll-down { position: absolute; bottom: 30px; font-size: 12px; color: #555; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+
+        /* 通用板块 */
+        .section { padding: 80px 24px; max-width: 800px; margin: 0 auto; position: relative; border-bottom: 1px solid #111; }
+        .tag { color: var(--accent-blue); font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 10px; }
+        .title { font-size: 32px; font-weight: 800; margin-bottom: 15px; }
+        .desc { font-size: 17px; color: #888; }
+
+        /* ================= 2. 解剖学 (这是这次修复的重点！) ================= */
+        .anatomy-box {
+            height: 260px; /* 加高盒子 */
+            background: #111; border-radius: 20px; margin-top: 30px;
+            display: flex; align-items: center; justify-content: center; position: relative;
+            /* 允许侧支稍微伸出去一点点，不被切掉 */
+            overflow: visible; 
+        }
+
+        /* 主干道 (Main Canal) */
+        .root-canal-main {
+            width: 14px; height: 180px; 
+            background: #2a2a2a; 
+            position: relative; /* 关键：让子元素相对于它定位 */
+            border-radius: 10px;
+            box-shadow: 0 0 25px rgba(255, 69, 58, 0.15); /* 淡淡的红光 */
+        }
+
+        /* 红色神经填充 (内芯) */
+        .nerve-fill {
+            position: absolute; top: 2px; left: 2px; width: 10px; height: 176px;
+            background: linear-gradient(to bottom, #ff3b30, #500);
+            opacity: 0.8; border-radius: 8px; z-index: 2;
+        }
+
+        /* 侧支根管 (Lateral Canals) - 现在是主干道的子元素 */
+        .lateral {
+            position: absolute; 
+            background: linear-gradient(90deg, #ff3b30, #2a2a2a); /* 渐变红 */
+            height: 4px; 
+            z-index: 1; /* 在主干后面一点点 */
+            border-radius: 2px;
+        }
+        
+        /* 侧支 1：左上 */
+        .lat-1 {
+            width: 40px; top: 40px; left: -35px; /* 向左伸出 */
+            transform: rotate(-15deg);
+        }
+        /* 侧支 2：右中 */
+        .lat-2 {
+            width: 30px; top: 90px; left: 10px; /* 向右伸出 */
+            transform: rotate(20deg);
+            background: linear-gradient(-90deg, #ff3b30, #2a2a2a);
+        }
+        /* 侧支 3：左下 */
+        .lat-3 {
+            width: 45px; top: 130px; left: -40px; /* 向左伸出 */
+            transform: rotate(-5deg);
+        }
+
+        /* 根尖分叉 (Apical Delta) */
+        .apical-delta {
+            position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 15px solid #ff3b30; /* 红色的根尖 */
+            opacity: 0.8;
+            filter: blur(1px);
+        }
+
+        /* 标签文字 */
+        .label-text {
+            position: absolute; color: #555; font-size: 10px; font-weight: 700; 
+            white-space: nowrap; letter-spacing: 1px;
+        }
+        .label-lateral { top: 35px; left: -120px; text-align: right;}
+        .label-lateral::after { content:'→'; margin-left:5px; color:#444; } /* 指示箭头 */
+        
+        .label-apical { bottom: 0px; right: -120px; text-align: left;}
+        .label-apical::before { content:'←'; margin-right:5px; color:#444; }
+
+        /* ================= 3. 传统演示 (绝对不动) ================= */
+        .demo-card-old {
+            background: #151515; border-radius: 30px; padding: 40px 20px; border: 1px solid #222;
+            position: relative; overflow: hidden; margin-top: 40px;
+        }
+        .demo-visual-old {
+            height: 250px; position: relative; margin-bottom: 30px;
+            background: radial-gradient(circle, #222 0%, #151515 70%); border-radius: 15px; overflow: hidden;
+            display: flex; justify-content: center;
+        }
+        .canal-wall {
+            width: 120px; height: 300px; 
+            border-left: 12px solid #333; border-right: 12px solid #333;
+            border-radius: 0 0 50% 100%; position: absolute; top: -20px; transform: rotate(-10deg);
+            z-index: 1;
+        }
+        .dirty-nerve {
+            position: absolute; width: 96px; height: 300px; top: -20px; transform: rotate(-10deg);
+            background: rgba(255, 59, 48, 0.2); border-radius: 0 0 50% 100%; z-index: 0;
+        }
+        .metal-file {
+            width: 14px; height: 180px;
+            background: repeating-linear-gradient(90deg, #888, #ddd 50%, #888 100%);
+            position: absolute; top: 20px; left: 50%; margin-left: -20px;
+            clip-path: polygon(20% 0%, 80% 0%, 50% 100%);
+            animation: fileWork 2s infinite ease-in-out; z-index: 2;
+        }
+        .dead-zone-alert {
+            position: absolute; top: 120px; left: 90px;
+            color: var(--accent-red); font-size: 10px; font-weight: 800;
+            animation: blinkAlert 1s infinite;
+        }
+        @keyframes fileWork { 0% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(50px) rotate(-5deg); } 100% { transform: translateY(0) rotate(-5deg); } }
+        @keyframes blinkAlert { 0%,100% { opacity: 0.3; } 50% { opacity: 1; transform: scale(1.1); } }
+
+        /* ================= 4. 超声演示 (绝对不动) ================= */
+        .demo-card-new {
+            background: linear-gradient(to bottom, #0a1a2a, #000); 
+            border-radius: 30px; padding: 40px 20px; border: 1px solid rgba(10,132,255,0.3);
+            position: relative; overflow: hidden; margin-top: 40px;
+        }
+        .demo-visual-new {
+            height: 250px; position: relative; margin-bottom: 30px;
+            background: #000; border-radius: 15px; overflow: hidden; display: flex; justify-content: center;
+        }
+        .ultra-tip {
+            width: 4px; height: 120px; background: #fff;
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 15px var(--accent-cyan); animation: vibrate 0.05s infinite linear;
+        }
+        .vortex-particle {
+            position: absolute; width: 6px; height: 6px; background: var(--accent-cyan);
+            border-radius: 50%; top: 140px; left: 50%; opacity: 0;
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+        .vp1 { animation: vortex 2s infinite linear; animation-delay: 0s; }
+        .vp2 { animation: vortex 2s infinite linear; animation-delay: 0.5s; }
+        .vp3 { animation: vortex 2s infinite linear; animation-delay: 1.0s; }
+        .vp4 { animation: vortex 2s infinite linear; animation-delay: 1.5s; }
+        .shock-ring {
+            position: absolute; top: 140px; left: 50%; transform: translate(-50%, -50%);
+            border: 2px solid var(--accent-blue); border-radius: 50%;
+            width: 10px; height: 10px; opacity: 0; animation: rippleExpand 1s infinite linear;
+        }
+        @keyframes vibrate { 0% { transform: translateX(-52%); } 100% { transform: translateX(-48%); } }
+        @keyframes vortex { 0% { transform: rotate(0deg) translateX(10px) scale(0.5); opacity: 0; } 50% { opacity: 1; } 100% { transform: rotate(360deg) translateX(60px) scale(1.5); opacity: 0; } }
+        @keyframes rippleExpand { 0% { width: 10px; height: 10px; opacity: 1; border-width: 5px; } 100% { width: 280px; height: 280px; opacity: 0; border-width: 0; } }
+
+        /* ================= 5. 细菌热力图 (绝对不动) ================= */
+        .heatmap-container { display: flex; gap: 10px; margin-top: 30px; }
+        .heat-box {
+            flex: 1; background: #111; border-radius: 15px; height: 180px; position: relative;
+            display: flex; align-items: center; justify-content: center; flex-direction: column; overflow: hidden;
+        }
+        .tooth-shape { width: 50px; height: 70px; background: #222; border-radius: 10px 10px 30px 30px; position: relative; }
+        .bacteria { position: absolute; width: 4px; height: 4px; background: var(--accent-red); border-radius: 50%; animation: jitter 0.5s infinite; }
+        .clean-dot { position: absolute; width: 3px; height: 3px; background: var(--accent-cyan); border-radius: 50%; box-shadow: 0 0 5px var(--accent-cyan); }
+        .heat-label { font-size: 12px; margin-top: 15px; font-weight: 700; color: #666; text-transform: uppercase; }
+        @keyframes jitter { 0% { transform: translate(0,0); } 25% { transform: translate(1px,1px); } 50% { transform: translate(-1px,0); } 75% { transform: translate(0,-1px); } }
+
+        /* ================= 6. 风险控制模型 (绝对不动) ================= */
+        .risk-box { margin-top: 40px; background: #161616; padding: 30px; border-radius: 20px; }
+        .risk-bar-container { margin-bottom: 25px; }
+        .risk-title { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; }
+        .risk-track { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; position: relative; }
+        .risk-fill-high { width: 40%; height: 100%; background: linear-gradient(90deg, #ff3b30, #ff9f0a); position: absolute; left: 0; }
+        .risk-fill-low { width: 95%; height: 100%; background: linear-gradient(90deg, #0A84FF, #30D158); position: absolute; left: 0; }
+        .risk-desc { font-size: 13px; color: #888; margin-top: 5px; }
+
+        /* ================= FAQ & Footer (绝对不动) ================= */
+        .faq-section { margin-top: 60px; padding-top: 60px; border-top: 1px solid #222; }
+        .faq-item { border-bottom: 1px solid #1a1a1a; padding: 25px 0; }
+        .faq-q { color: #fff; font-weight: 700; margin-bottom: 8px; font-size: 16px; display: flex; }
+        .faq-q span { color: var(--accent-gold); margin-right: 10px; }
+        .faq-a { color: var(--text-sub); font-size: 15px; padding-left: 25px; line-height: 1.6; }
+
+        .footer { padding: 80px 24px; text-align: center; }
+        .cta-btn {
+            background: var(--accent-blue); color: white; padding: 18px 0; width: 100%; max-width: 350px;
+            border-radius: 40px; font-weight: 700; text-decoration: none; display: inline-block;
+            font-size: 18px; box-shadow: 0 0 30px rgba(10,132,255,0.4);
+            animation: pulseBtn 3s infinite;
+        }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(10,132,255,0.7); } 70% { box-shadow: 0 0 0 15px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
+
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="#" class="nav-back" onclick="history.back()">❮ 返回</a>
+        <span class="nav-title">LIPENG OS V15.1 · FIXED</span>
+        <div style="width: 30px"></div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-glow"></div>
+        <h1 class="hero-h1">选择<br><span>不留遗憾</span></h1>
+        <p class="hero-p">深度解析：为什么“流体动力学”是降低复发风险的最佳方案？</p>
+        <div class="scroll-down">向下滑动开始探索 ▼</div>
+    </div>
+
+    <div class="section">
+        <span class="tag">THE ANATOMY · 解剖学真相</span>
+        <h2 class="title">牙齿内部是迷宫<br>不是直管。</h2>
+        <p class="desc">90% 的治疗失败，是因为医生把牙根想象成了直筒，而忽略了复杂的侧支。</p>
+        
+        <div class="anatomy-box">
+            <div class="root-canal-main">
+                <div class="nerve-fill"></div>
+                <div class="lateral lat-1"></div>
+                <div class="lateral lat-2"></div>
+                <div class="lateral lat-3"></div>
+                <div class="apical-delta"></div>
+                
+                <div class="label-text label-lateral">侧支迷宫</div>
+                <div class="label-text label-apical">根尖分叉</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="tag" style="color: var(--accent-red);">OLD WAY · 机械清理</span>
+        <div class="demo-card-old">
+            <h2 class="title">机械扩锉 (传统)</h2>
+            <p class="desc">
+                依靠不锈钢锉的<span style="color: #fff;">物理刮除</span>。器械是硬的，只能走直线。
+            </p>
+            <div class="demo-visual-old">
+                <div class="canal-wall"></div>
+                <div class="dirty-nerve"></div>
+                <div class="metal-file"></div>
+                <div class="dead-zone-alert">死角残留!</div> 
+            </div>
+            <p style="font-size: 14px; color: #666; text-align: center;">
+                ⚠️ 警示：对于弯曲部分，硬金属器械无法触及，导致细菌残留。
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="tag">NEW WAY · 极智流体</span>
+        <div class="demo-card-new">
+            <h2 class="title">超声流体动力学</h2>
+            <p class="desc">
+                液体无孔不入。利用<span style="color: var(--accent-cyan);">声流效应 + 空化气泡</span>，实现 360° 爆破式清洁。
+            </p>
+            <div class="demo-visual-new">
+                <div class="shock-ring"></div>
+                <div class="ultra-tip"></div>
+                <div class="vortex-particle vp1"></div>
+                <div class="vortex-particle vp2"></div>
+                <div class="vortex-particle vp3"></div>
+                <div class="vortex-particle vp4"></div>
+            </div>
+            <p style="font-size: 14px; color: var(--accent-blue); text-align: center;">
+                🌊 优势：药液被激荡成微米级颗粒，压入所有侧支迷宫。
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="tag" style="color: var(--accent-red);">VISUAL EVIDENCE · 灭菌效果</span>
+        <h2 class="title">看不见的微观战场</h2>
+        <p class="desc">显微镜下的残留细菌分布对比。</p>
+
+        <div class="heatmap-container">
+            <div class="heat-box">
+                <div class="tooth-shape">
+                    <div class="bacteria" style="top:20px; left:10px;"></div>
+                    <div class="bacteria" style="top:40px; left:30px;"></div>
+                    <div class="bacteria" style="top:60px; left:15px;"></div>
+                </div>
+                <div class="heat-label" style="color: var(--accent-red);">传统残留</div>
+            </div>
+
+            <div class="heat-box" style="border: 1px solid var(--accent-blue);">
+                <div class="tooth-shape" style="background: #112;">
+                    <div class="clean-dot" style="top:20px; left:10px;"></div>
+                    <div class="clean-dot" style="top:40px; left:30px;"></div>
+                    <div class="clean-dot" style="top:60px; left:15px;"></div>
+                </div>
+                <div class="heat-label" style="color: var(--accent-cyan);">超声净彻</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="tag" style="color: var(--accent-gold);">RISK CONTROL · 风险管理</span>
+        <h2 class="title">医学没有绝对<br>但有“大概率”。</h2>
+        <p class="desc">虽然我们不能承诺牙齿用一辈子，但我们可以选择将“失败风险”降到最低的方案。</p>
+
+        <div class="risk-box">
+            <div class="risk-bar-container">
+                <div class="risk-title">
+                    <span>传统治疗成功率</span>
+                    <span style="color: #ff3b30;">约 60-70%</span>
+                </div>
+                <div class="risk-track">
+                    <div class="risk-fill-high"></div>
+                </div>
+                <div class="risk-desc">因死角细菌残留，存在远期复发风险。</div>
+            </div>
+
+            <div class="risk-bar-container" style="margin-bottom: 0;">
+                <div class="risk-title">
+                    <span>极智超声成功率</span>
+                    <span style="color: var(--accent-green);">95% 以上</span>
+                </div>
+                <div class="risk-track">
+                    <div class="risk-fill-low"></div>
+                </div>
+                <div class="risk-desc" style="color: var(--accent-blue);">通过极致的清洁，给予牙齿最大的保留机会。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="faq-section">
+        <div class="section" style="border:none; padding-top:0;">
+            <h2 class="title" style="margin-bottom: 30px;">常见疑问</h2>
+            
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span> 这个治疗会疼吗？</div>
+                <div class="faq-a">全程舒适化操作。超声微震代替了粗暴的机械刮除，术后反应极轻。大部分患者反馈像“洗牙”一样。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span> 为什么比普通治疗贵？</div>
+                <div class="faq-a">因为它包含了一次性镍钛器械（防交叉感染）、CBCT 影像及超声设备损耗。我们把成本花在了您看不见、但决定成败的细节上。</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span> 治疗需要几次？</div>
+                <div class="faq-a">通常 2-3 次。第一次彻底封药消炎，第二次进行三维充填。慢工出细活，我们会严格把控愈合标准。</div>
+            </div>
+
+            <div class="faq-item" style="border-bottom: none;">
+                <div class="faq-q"><span>Q.</span> 治好后能用多少年？</div>
+                <div class="faq-a">
+                    牙齿的使用寿命取决于“治疗质量”+“后期维护”。<br>
+                    医学上没有谁能保证“一辈子”，但极智系统的目标是：<b>把地基打得最牢固</b>，只要您好好刷牙、不咬硬物，它就能为您服务尽可能长的时间。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="#" class="cta-btn">预约保留率评估</a>
+        <div style="margin-top: 30px; font-size: 10px; color: #333;">LIPENG OS V15.1 · FIXED</div>
+    </div>
+
+</body>
+</html>
