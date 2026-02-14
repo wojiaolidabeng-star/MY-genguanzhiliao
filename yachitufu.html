@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牙釉质隐形防护盾 - 极智数字口腔</title>
+    <style>
+        /* 基础重置与全局样式 */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        body, html { width: 100%; height: 100%; background-color: #050914; color: #ffffff; overflow: hidden; }
+        
+        /* 滚动容器：实现类似PPT的整屏滑动效果，专为iPad触屏优化 */
+        .scroll-container {
+            width: 100%; height: 100vh;
+            overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth;
+        }
+        
+        /* 每一屏的基础样式 */
+        section {
+            width: 100%; height: 100vh; scroll-snap-align: start;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: relative; padding: 2rem; text-align: center;
+        }
+
+        /* 渐变与发光特效 */
+        .glow-text {
+            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+        
+        /* 标题排版 */
+        h1 { font-size: 4rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: 4px; }
+        h2 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; color: #e0e0e0; }
+        h3 { font-size: 2rem; color: #4facfe; margin-bottom: 1rem; }
+        p { font-size: 1.2rem; line-height: 1.8; color: #b0bec5; max-width: 800px; margin: 0 auto; }
+
+        /* 第1屏：主视觉 - 3D护盾发光效果 */
+        #page1 .tooth-model-container {
+            width: 300px; height: 300px; margin: 2rem auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79,172,254,0.2) 0%, rgba(5,9,20,0) 70%);
+            display: flex; justify-content: center; align-items: center;
+            position: relative; animation: pulse 3s infinite alternate;
+        }
+        /* 模拟3D牙齿穿上发光膜的效果 */
+        .tooth-shield {
+            width: 150px; height: 180px;
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 40% 40% 50% 50%;
+            box-shadow: 0 0 40px #00f2fe, inset 0 0 20px #00f2fe;
+            position: relative;
+        }
+        .tooth-shield::after {
+            content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 2px solid rgba(0, 242, 254, 0.8); border-radius: 45% 45% 55% 55%;
+            animation: shield-rotate 6s linear infinite;
+        }
+
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2); } 100% { transform: scale(1.05); box-shadow: 0 0 60px rgba(0, 242, 254, 0.6); } }
+        @keyframes shield-rotate { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(360deg) scale(1); } }
+
+        /* 卡片网格排版 (用于功能展示) */
+        .grid-container {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; width: 80%; max-width: 1000px; margin-top: 2rem;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 242, 254, 0.2);
+            padding: 2.5rem; border-radius: 20px; backdrop-filter: blur(10px);
+            transition: transform 0.3s ease; text-align: left;
+        }
+        .card:hover { transform: translateY(-10px); border-color: #00f2fe; box-shadow: 0 10px 30px rgba(0,242,254,0.15); }
+        .card h4 { font-size: 1.5rem; color: #fff; margin-bottom: 1rem; }
+
+        /* 导航提示 */
+        .scroll-hint { position: absolute; bottom: 30px; font-size: 1rem; color: rgba(255,255,255,0.5); animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+        
+        /* 标签样式 */
+        .badge { display: inline-block; padding: 0.5rem 1.5rem; background: rgba(0,242,254,0.1); border: 1px solid #00f2fe; border-radius: 30px; color: #00f2fe; font-size: 1rem; margin: 0.5rem; }
+
+    </style>
+</head>
+<body>
+
+<div class="scroll-container">
+
+    <section id="page1">
+        <h1 class="glow-text">牙釉质隐形防护盾</h1>
+        <h2>纳米级氟化再矿化护理 · 牙齿修复精华</h2>
+        <div class="tooth-model-container">
+            <div class="tooth-shield"></div> 
+        </div>
+        <p>为您的牙齿，穿上一层会呼吸的发光护甲。</p>
+        <div class="scroll-hint">向下滑动探索 ▼</div>
+    </section>
+
+    <section id="page2">
+        <h3>日常侵蚀，防不胜防</h3>
+        <p>奶茶的糖分、咖啡的色素、碳酸饮料的酸蚀……<br>每天，我们的牙釉质都在经历看不见的微观崩塌，导致牙齿敏感、发黄、脱矿。</p>
+        <div style="margin-top: 3rem; font-size: 1.5rem; color: #ff6b6b;">普通的刷牙，只能清洁表面。</div>
+    </section>
+
+    <section id="page3">
+        <h1 class="glow-text">牙釉质深层矿化隔离霜</h1>
+        <p>这不是一次普通的涂抹，这是一次医疗级的“齿科抗衰”。</p>
+        <p style="margin-top: 1rem;">像出门前给脸部涂抹隔离霜一样，<br>我们在高倍显微视野下，为牙齿表面封填微孔，阻绝外界伤害。</p>
+    </section>
+
+    <section id="page4">
+        <h3>像给牙齿做了一次深层 SPA</h3>
+        <div style="font-size: 4rem; margin: 2rem 0;">💆‍♀️✨🦷</div>
+        <p>全程无痛、无创、无酸涩感。<br>只需几分钟，高活氟离子渗透牙体深层，舒缓牙神经，强韧牙本底。</p>
+        <div class="badge">像涂脸一样简单</div>
+    </section>
+
+    <section id="page5">
+        <h3 class="glow-text">全方位隐形守护</h3>
+        <div class="grid-container">
+            <div class="card">
+                <h4>🛡️ 抗糖</h4>
+                <p>形成致密保护膜，有效阻断糖分转化成酸，从根源切断龋齿发生链条。</p>
+            </div>
+            <div class="card">
+                <h4>🍋 抗酸</h4>
+                <p>中和口腔酸碱度，抵抗碳酸饮料及果酸对牙釉质的化学溶解。</p>
+            </div>
+            <div class="card">
+                <h4>✨ 牙齿美白辅助</h4>
+                <p>抚平牙齿表面微观划痕，减少色素沉积，让牙齿自带健康光泽。</p>
+            </div>
+            <div class="card">
+                <h4>❄️ 冷光美白后修复</h4>
+                <p>美白后的“镇定舒缓液”，迅速封闭开放的牙本质小管，告别酸倒牙。</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="page6">
+        <h3>纳米级高活氟离子渗透技术</h3>
+        <p>传统材料停留在表面，而我们的“牙齿修复精华”采用纳米级高活态氟离子。</p>
+        <br>
+        <p>它能主动寻找牙齿表面的薄弱、脱矿区域，<br>渗透进入牙釉质晶体内部，完成 <strong>“再矿化”</strong>，让牙齿重新变得坚硬致密。</p>
+    </section>
+
+    <section id="page7">
+        <h3 class="glow-text">谁需要隐形防护盾？</h3>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; max-width: 800px; margin-top: 2rem;">
+            <span class="badge">甜品奶茶爱好者 (抗糖)</span>
+            <span class="badge">正畸佩戴牙套人群 (防脱矿白斑)</span>
+            <span class="badge">刚做完牙齿美白 (抗敏修复)</span>
+            <span class="badge">吃冷热酸甜就敏感 (深度舒缓)</span>
+            <span class="badge">追求高品质口腔护理的人士 (日常保养)</span>
+        </div>
+    </section>
+
+    <section id="page8">
+        <h1 class="glow-text">建立你的齿科新防线</h1>
+        <h2>每次复诊的“必备加持项目”</h2>
+        <p style="margin-bottom: 3rem;">今天，给你的牙齿涂上这层“隔离霜”了吗？</p>
+        
+        <div style="background: linear-gradient(90deg, #00f2fe, #4facfe); padding: 1rem 3rem; border-radius: 50px; font-size: 1.5rem; font-weight: bold; color: #050914; display: inline-block; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 242, 254, 0.3);">
+            立即加入本次护理方案
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>
