@@ -35,7 +35,7 @@
             object-position: center right;
         }
 
-        /* 右侧对话框区域 - 由 Coze SDK 自动占据 */
+        /* 右侧对话框区域 */
         .coze-web-sdk-container {
             right: 0 !important;
             bottom: 0 !important;
@@ -102,13 +102,12 @@ XcJOBW3DpsqgvLGvIpLK/6E=
         let userSessionId = localStorage.getItem('dr_chatbot_session_id');
 
         if (!userSessionId) {
-            // 首次访问，生成新的会话 ID
             userSessionId = 'patient_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('dr_chatbot_session_id', userSessionId);
         }
 
         console.log('=== 李医生数字诊室 ===');
-        console.log('会话ID (session_name):', userSessionId);
+        console.log('会话ID:', userSessionId);
 
         // ============================================
         // 生成 JWT Token
@@ -126,57 +125,80 @@ XcJOBW3DpsqgvLGvIpLK/6E=
                 aud: 'api.coze.cn',
                 jti: Math.random().toString(36).substr(2, 32) + Date.now(),
                 iat: currentTime,
-                exp: currentTime + 3600,  // Token 有效期 1 小时
-                session_name: userSessionId  // 【关键】会话隔离的核心！
+                exp: currentTime + 3600,
+                session_name: userSessionId
             };
 
-            return KJUR.jws.JWS.sign(
+            const jwt = KJUR.jws.JWS.sign(
                 header.alg,
                 JSON.stringify(header),
                 JSON.stringify(payload),
                 COZE_CONFIG.privateKey
             );
+
+            console.log('JWT 已生成:', jwt.substring(0, 50) + '...');
+            return jwt;
         }
+
+        // ============================================
+        // 先生成 Token，再初始化 SDK
+        // ============================================
+        const jwtToken = generateCozeJwt();
+
+        console.log('准备初始化 Coze SDK...');
 
         // ============================================
         // 初始化 Coze SDK
         // ============================================
-        const client = new CozeWebSDK.WebChatClient({
-            config: {
-                bot_id: COZE_CONFIG.botId
-            },
-            componentProps: {
-                title: '李医生数字诊室',
-                layout: 'pc'
-            },
-            auth: {
-                type: 'jwt_token',  // 使用 JWT 认证
-                token: generateCozeJwt(),
-                onRefreshToken: () => {
-                    console.log('Token 刷新');
-                    return generateCozeJwt();
+        try {
+            const client = new CozeWebSDK.WebChatClient({
+                config: {
+                    bot_id: COZE_CONFIG.botId
+                },
+                componentProps: {
+                    title: '李医生数字诊室',
+                    layout: 'pc'
+                },
+                auth: {
+                    type: 'token',  // 【关键】使用 token 类型，传入 JWT
+                    token: jwtToken,
+                    onRefreshToken: () => {
+                        console.log('Token 刷新');
+                        return generateCozeJwt();
+                    }
+                },
+                userInfo: {
+                    id: userSessionId,
+                    name: '患者'
+                },
+                ui: {
+                    asstBtn: {
+                        isNeed: false
+                    }
                 }
-            },
-            userInfo: {
-                id: userSessionId,
-                name: '患者'
-            },
-            ui: {
-                asstBtn: {
-                    isNeed: false  // 隐藏按钮
+            });
+
+            console.log('✅ SDK 初始化成功');
+
+            // 自动打开对话框
+            setTimeout(() => {
+                if (client.showChatBot) {
+                    client.showChatBot();
+                    console.log('✅ 对话框已打开');
                 }
-            }
-        });
+            }, 1000);
+
+        } catch (error) {
+            console.error('❌ SDK 初始化失败:', error);
+            console.error('错误详情:', error.message);
+        }
 
         // ============================================
-        // 自动打开对话框
+        // 错误处理
         // ============================================
-        setTimeout(() => {
-            if (client.showChatBot) {
-                client.showChatBot();
-                console.log('✅ 对话框已打开');
-            }
-        }, 1000);
+        window.addEventListener('error', (e) => {
+            console.error('发生错误:', e.message);
+        });
     </script>
 </body>
 </html>
