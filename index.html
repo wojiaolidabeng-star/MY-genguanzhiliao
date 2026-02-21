@@ -300,10 +300,15 @@
                 });
 
                 if (response.ok) {
+                    // 移除"正在输入..."
+                    const typing = document.getElementById('typing');
+                    if (typing) typing.remove();
+
                     // 流式响应处理
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let fullContent = '';
+                    let isFinished = false;
                     let assistantMessageDiv = null;
 
                     // 创建空的助手消息
@@ -311,11 +316,17 @@
                     assistantMessageDiv.className = 'message assistant';
                     chatMessages.appendChild(assistantMessageDiv);
 
+                    console.log('开始读取流式响应...');
+
                     while (true) {
                         const { done, value } = await reader.read();
-                        if (done) break;
+                        if (done) {
+                            console.log('流式响应读取完成');
+                            break;
+                        }
 
                         const chunk = decoder.decode(value);
+                        console.log('收到数据块:', chunk.substring(0, 200));
 
                         // 解析 SSE 格式（每行是 data: {...}）
                         const lines = chunk.split('\n');
@@ -324,6 +335,7 @@
                                 const dataStr = line.slice(6).trim();
                                 try {
                                     const data = JSON.parse(dataStr);
+                                    console.log('解析的数据:', data);
 
                                     // 提取内容：从 message.content 字段
                                     if (data.event === 'message' && data.message && data.message.content) {
@@ -333,14 +345,14 @@
                                         // 实时更新消息显示
                                         assistantMessageDiv.textContent = fullContent;
                                         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                                        console.log('当前内容:', fullContent.substring(0, 100));
                                     }
 
                                     // 检查是否完成
                                     if (data.is_finish) {
-                                        console.log('✅ 响应完成');
-                                        // 保存到历史
-                                        currentHistory.push({ role: 'assistant', content: fullContent, time: Date.now() });
-                                        saveHistory();
+                                        console.log('✅ 收到完成标志');
+                                        isFinished = true;
                                     }
                                 } catch (e) {
                                     console.warn('解析 SSE 数据失败:', e, dataStr);
@@ -349,9 +361,17 @@
                         }
                     }
 
-                    // 移除"正在输入..."
-                    const typing = document.getElementById('typing');
-                    if (typing) typing.remove();
+                    console.log('流式响应结束，内容长度:', fullContent.length, '是否完成:', isFinished);
+
+                    // 保存到历史
+                    if (fullContent.length > 0) {
+                        currentHistory.push({ role: 'assistant', content: fullContent, time: Date.now() });
+                        saveHistory();
+                        console.log('✅ 已保存到历史');
+                    } else {
+                        console.warn('⚠️ 未收到任何内容');
+                        assistantMessageDiv.textContent = '抱歉，没有收到回复。';
+                    }
 
                 } else {
                     const errorText = await response.text();
