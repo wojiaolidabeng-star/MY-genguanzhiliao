@@ -277,6 +277,8 @@
             chatMessages.appendChild(typingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
+            let assistantMessageDiv = null;
+
             try {
                 // 如果没有会话 ID，先创建
                 if (!conversationId) {
@@ -309,12 +311,6 @@
                     const decoder = new TextDecoder();
                     let fullContent = '';
                     let isFinished = false;
-                    let assistantMessageDiv = null;
-
-                    // 创建空的助手消息
-                    assistantMessageDiv = document.createElement('div');
-                    assistantMessageDiv.className = 'message assistant';
-                    chatMessages.appendChild(assistantMessageDiv);
 
                     console.log('开始读取流式响应...');
 
@@ -342,6 +338,13 @@
                                         const newContent = data.message.content;
                                         fullContent += newContent;
 
+                                        // 如果还没有创建消息框，先创建
+                                        if (!assistantMessageDiv) {
+                                            assistantMessageDiv = document.createElement('div');
+                                            assistantMessageDiv.className = 'message assistant';
+                                            chatMessages.appendChild(assistantMessageDiv);
+                                        }
+
                                         // 实时更新消息显示
                                         assistantMessageDiv.textContent = fullContent;
                                         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -363,14 +366,15 @@
 
                     console.log('流式响应结束，内容长度:', fullContent.length, '是否完成:', isFinished);
 
-                    // 保存到历史
+                    // 保存到历史（只在有内容时）
                     if (fullContent.length > 0) {
                         currentHistory.push({ role: 'assistant', content: fullContent, time: Date.now() });
                         saveHistory();
                         console.log('✅ 已保存到历史');
-                    } else {
+                    } else if (!assistantMessageDiv) {
+                        // 如果整个过程中没有收到任何内容
                         console.warn('⚠️ 未收到任何内容');
-                        assistantMessageDiv.textContent = '抱歉，没有收到回复。';
+                        addMessage('assistant', '抱歉，没有收到回复。');
                     }
 
                 } else {
