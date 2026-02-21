@@ -1,20 +1,44 @@
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/builder-web-sdk/0.1.1-beta.1/dist/umd/index.js"></script>
-<script>
-  // 优化点 1：生成一个随机的访客 ID，解决聊天记录串门问题
-  const randomUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>李医生术后关怀助手</title>
+</head>
+<body>
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
+    <script>
+      // 隐私保护逻辑：为每个访客生成独立 ID，解决聊天记录串门问题
+      function getUserId() {
+          let id = localStorage.getItem('my_doctor_li_id');
+          if (!id) {
+              id = 'p_' + Math.random().toString(36).substr(2, 9);
+              localStorage.setItem('my_doctor_li_id', id);
+          }
+          return id;
+      }
 
-  new CozeWebSDK.AppWebSDK({
-    // 你的正确参数
-    token: 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w',
-    appId: '58523127823005805621998481591963.app.coze', 
-    container: '#app',
-    config: {
-      bot_id: '7608863077597626394',
-    },
-    // 优化点 2：动态赋值用户信息
-    userInfo: { 
-        id: randomUserId, 
-        nickname: '访客' 
-    }
-  });
-</script>
+      new CozeWebSDK.WebChatClient({
+        config: {
+          // 您的 Bot ID
+          bot_id: '7608863077597626394',
+        },
+        componentProps: {
+          title: '李医生术后关怀助手',
+        },
+        auth: {
+          type: 'token',
+          // 您的长令牌
+          token: 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w',
+          onRefreshToken: function () {
+            return 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w'
+          }
+        },
+        // 将独立 ID 传给系统
+        userInfo: {
+            id: getUserId(),
+            nickname: '访客'
+        }
+      });
+    </script>
+</body>
+</html>
