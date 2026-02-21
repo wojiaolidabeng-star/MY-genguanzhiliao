@@ -1,37 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>李医生诊室 - 测试页</title>
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #coze-chat-container { width: 100%; height: 100%; }
-    </style>
+    <title>李医生诊室 - 聊天气泡版</title>
 </head>
 <body>
-    <div id="coze-chat-container"></div>
-
-    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/builder-web-sdk/0.1.1-beta.1/dist/umd/index.js"></script>
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
     <script>
-      // 初始化 Coze SDK
-      new CozeWebSDK.AppWebSDK({
-        // 【关键参数】你的个人访问令牌 (PAT)
-        token: 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w',
-        
-        // 【关键修正】这是正确的客户端 ID (Client ID)，不是那个短的数字 ID
-        appId: '58523127823005805621998481591963.app.coze',
-        
-        // 指定渲染容器
-        container: '#coze-chat-container',
-        
+      new CozeWebSDK.WebChatClient({
         config: {
-          // 你的 Bot ID
+          // 你的员工工号
           bot_id: '7608863077597626394',
         },
-        userInfo: { 
-            id: 'test_user', 
-            nickname: '测试访客' 
+        componentProps: {
+          title: '李医生术后关怀助手',
+        },
+        auth: {
+          type: 'token',
+          // 填入你那个 pat_dT8Z... 的长密钥
+          token: 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w',
+          onRefreshToken: function () {
+            return 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w'
+          }
         }
       });
     </script>
