@@ -278,6 +278,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             let assistantMessageDiv = null;
+            let savedToHistory = false;
 
             try {
                 // 如果没有会话 ID，先创建
@@ -310,7 +311,6 @@
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let fullContent = '';
-                    let isFinished = false;
 
                     console.log('开始读取流式响应...');
 
@@ -331,31 +331,41 @@
                                 const dataStr = line.slice(6).trim();
                                 try {
                                     const data = JSON.parse(dataStr);
-                                    console.log('解析的数据:', data);
 
                                     // 提取内容：从 message.content 字段
                                     if (data.event === 'message' && data.message && data.message.content) {
                                         const newContent = data.message.content;
-                                        fullContent += newContent;
+                                        
+                                        // 只追加非空内容
+                                        if (newContent && newContent.length > 0) {
+                                            fullContent += newContent;
 
-                                        // 如果还没有创建消息框，先创建
-                                        if (!assistantMessageDiv) {
-                                            assistantMessageDiv = document.createElement('div');
-                                            assistantMessageDiv.className = 'message assistant';
-                                            chatMessages.appendChild(assistantMessageDiv);
+                                            // 如果还没有创建消息框，先创建
+                                            if (!assistantMessageDiv) {
+                                                assistantMessageDiv = document.createElement('div');
+                                                assistantMessageDiv.className = 'message assistant';
+                                                chatMessages.appendChild(assistantMessageDiv);
+                                            }
+
+                                            // 实时更新消息显示
+                                            assistantMessageDiv.textContent = fullContent;
+                                            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                                            console.log('当前内容:', fullContent.substring(0, 50));
                                         }
-
-                                        // 实时更新消息显示
-                                        assistantMessageDiv.textContent = fullContent;
-                                        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                                        console.log('当前内容:', fullContent.substring(0, 100));
                                     }
 
                                     // 检查是否完成
                                     if (data.is_finish) {
                                         console.log('✅ 收到完成标志');
-                                        isFinished = true;
+
+                                        // 如果有内容且还没保存，保存到历史
+                                        if (fullContent.length > 0 && !savedToHistory) {
+                                            currentHistory.push({ role: 'assistant', content: fullContent, time: Date.now() });
+                                            saveHistory();
+                                            savedToHistory = true;
+                                            console.log('✅ 已保存到历史，内容长度:', fullContent.length);
+                                        }
                                     }
                                 } catch (e) {
                                     console.warn('解析 SSE 数据失败:', e, dataStr);
@@ -364,13 +374,13 @@
                         }
                     }
 
-                    console.log('流式响应结束，内容长度:', fullContent.length, '是否完成:', isFinished);
-
-                    // 保存到历史（只在有内容时）
-                    if (fullContent.length > 0) {
+                    // 最后的保险：如果还有内容没保存
+                    if (fullContent.length > 0 && !savedToHistory) {
+                        console.log('保险保存：内容长度', fullContent.length);
                         currentHistory.push({ role: 'assistant', content: fullContent, time: Date.now() });
                         saveHistory();
-                        console.log('✅ 已保存到历史');
+                        savedToHistory = true;
+                        console.log('✅ 保险保存完成');
                     } else if (!assistantMessageDiv) {
                         // 如果整个过程中没有收到任何内容
                         console.warn('⚠️ 未收到任何内容');
