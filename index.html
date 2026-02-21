@@ -2,134 +2,78 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>李医生口腔诊室 · 未来影像中心</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
     <style>
-        /* 全局基础设定 */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        
-        /* 背景粒子画布 */
-        #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; }
-
-        /* 左侧 3D 模型容器 */
-        #left-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%; /* 占据左半边屏幕 */
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: -1;
-            pointer-events: none; /* 让鼠标事件穿透，不影响操作 */
-        }
-
-        /* 强制隐藏右下角的小气泡按钮，因为我们要让它自动弹窗 */
+        /* 背景粒子层 */
+        #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        /* 3D 旋转核心层 */
+        #three-container { position: absolute; top: 0; left: 0; width: 50%; height: 100%; z-index: 2; pointer-events: none; }
+        /* 强制覆盖 SDK 样式，确保李医生乖乖待在右边 */
+        .coze-web-sdk-container { right: 20px !important; bottom: 20px !important; left: auto !important; transform: none !important; }
         .coze-web-sdk-bubble-icon { display: none !important; }
     </style>
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
-    
-    <div id="left-container"></div>
+    <div id="three-container"></div>
 
     <script>
-        // =================================================================
-        // 第一部分：绝对失忆逻辑（解决你最介意的问题）
-        // =================================================================
-        // 每次刷新页面，生成一个基于当前毫秒级时间戳的唯一 ID
-        const uniquePatientId = 'patient_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
-        console.log("🚀 全新患者ID已生成，记忆已清除:", uniquePatientId);
+        // 1. 【核心逻辑】绝对失忆补丁：每次刷新都生成全新 ID
+        const freshId = 'patient_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        console.log("✅ 隐私隔离启动，患者ID:", freshId);
 
-
-        // =================================================================
-        // 第二部分：背景粒子特效 (保持原有风味)
-        // =================================================================
-        const bgCanvas = document.getElementById('bg-canvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        let particles = [];
-        function initBgCanvas() {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            particles = [];
-            for(let i=0; i<150; i++) { // 增加粒子数量让背景更丰富
-                particles.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3,
-                    size: Math.random() * 1.5,
-                    alpha: Math.random() * 0.5 + 0.2
-                });
-            }
-        }
-        function animateBg() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if(p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
-                if(p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
-                bgCtx.beginPath();
-                bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                bgCtx.fillStyle = `rgba(0, 195, 255, ${p.alpha})`;
-                bgCtx.fill();
-            });
-            requestAnimationFrame(animateBg);
-        }
-        window.addEventListener('resize', initBgCanvas);
-        initBgCanvas();
-        animateBg();
-
-
-        // =================================================================
-        // 第三部分：左侧科幻 3D 旋转模型 (代替 CT 牙齿)
-        // =================================================================
-        const leftContainer = document.getElementById('left-container');
+        // 2. 绘制 3D 旋转“数字牙齿”核心
+        const container = document.getElementById('three-container');
         const scene = new THREE.Scene();
-        // 使用容器的宽高比
-        const camera = new THREE.PerspectiveCamera(75, leftContainer.clientWidth / leftContainer.clientHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); // alpha: true 让背景透明
-        renderer.setSize(leftContainer.clientWidth, leftContainer.clientHeight);
-        leftContainer.appendChild(renderer.domElement);
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
 
-        // 创建一个科幻感的多面体几何体 (IcosahedronGeometry)
-        const geometry = new THREE.IcosahedronGeometry(2, 1); // 半径为2，细节等级为1
-        // 创建发光的蓝色线框材质
+        // 创建一个看起来像“科幻牙齿”的复杂几何体
+        const geometry = new THREE.TorusKnotGeometry(1.5, 0.4, 100, 16); 
         const material = new THREE.MeshBasicMaterial({ 
-            color: 0x00c3ff, 
-            wireframe: true, 
-            transparent: true, 
-            opacity: 0.8 
+            color: 0x00c3ff, wireframe: true, transparent: true, opacity: 0.6 
         });
-        const sciFiModel = new THREE.Mesh(geometry, material);
-        scene.add(sciFiModel);
-
+        const toothCore = new THREE.Mesh(geometry, material);
+        scene.add(toothCore);
         camera.position.z = 5;
 
-        // 动画循环：让模型旋转起来
-        function animateModel() {
-            requestAnimationFrame(animateModel);
-            sciFiModel.rotation.x += 0.005;
-            sciFiModel.rotation.y += 0.01;
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            toothCore.rotation.y += 0.01; // 持续旋转
+            toothCore.rotation.x += 0.005;
             renderer.render(scene, camera);
         }
-        animateModel();
-        // 窗口大小改变时更新相机和渲染器
-        window.addEventListener('resize', () => {
-            const width = leftContainer.clientWidth;
-            const height = leftContainer.clientHeight;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
-        });
+        animate3D();
 
+        // 3. 背景蓝点粒子（与你截图风格一致）
+        const bgCanvas = document.getElementById('bg-canvas');
+        const ctx = bgCanvas.getContext('2d');
+        let dots = [];
+        function initDots() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            for(let i=0; i<150; i++) dots.push({
+                x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height,
+                v: Math.random()*0.5, size: Math.random()*2
+            });
+        }
+        function drawDots() {
+            ctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            ctx.fillStyle = 'rgba(0, 195, 255, 0.6)';
+            dots.forEach(d => {
+                d.y -= d.v; if(d.y < 0) d.y = bgCanvas.height;
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.size, 0, Math.PI*2); ctx.fill();
+            });
+            requestAnimationFrame(drawDots);
+        }
+        initDots(); drawDots();
 
-        // =================================================================
-        // 第四部分：李医生 Chat SDK 初始化 (在右侧)
-        // =================================================================
+        // 4. 正式启动右侧李医生
         const client = new CozeWebSDK.WebChatClient({
             config: { bot_id: '7608863077597626394' },
             componentProps: { title: '李医生口腔诊室', layout: 'pc' },
@@ -138,16 +82,10 @@
                 token: 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w',
                 onRefreshToken: () => 'pat_dT8ZNCudSDhO2DRLnZMtuuZNhBwOFt4gTbNjr25yPK6FtkC5hK9VmehDLKuSqR7w'
             },
-            // 【关键】强制喂入全新生成的 ID，解决记忆残留问题
-            userInfo: { 
-                id: uniquePatientId, 
-                name: '访客-' + uniquePatientId.slice(-4) 
-            },
-            // 隐藏不需要的自带按钮
+            // 【关键】喂入随机ID，确保后台“长期记忆”失效
+            userInfo: { id: freshId, name: '初诊访客' },
             ui: { asstBtn: { isNeed: false } }
         });
-
-        // 强制自动弹窗，让李医生直接显示
         client.showChatBot();
     </script>
 </body>
